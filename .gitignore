@@ -1,0 +1,13 @@
+# Node.js backend
+carpool-backend/node_modules/
+carpool-backend/.env
+
+# Flutter frontend
+carpool-frontend/build/
+carpool-frontend/.dart_tool/
+carpool-frontend/.env
+
+# Common system files
+.DS_Store
+Thumbs.db
+
