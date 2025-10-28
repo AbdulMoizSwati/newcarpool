@@ -1,8 +1,9 @@
 import 'package:carpool_frontend/Authentication/Signupage.dart';
+import 'package:carpool_frontend/Dashboard/driverDashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// Optional: for "Go to Signup" navigation
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ Added to store token/user info
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,18 +14,18 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isLoading = false; // optional for showing a loading state
+  bool isLoading = false;
 
   Future<void> sendLoginData() async {
-    const String apiUrl = "http://10.0.2.2:8001/api/users/login"; // Adjust API
+    const String apiUrl =
+        "http://10.0.2.2:8001/api/users/login"; // ✅ Your backend endpoint
 
     final Map<String, dynamic> loginData = {
-      "email": emailController.text,
-      "password": passwordController.text,
+      "email": emailController.text.trim(),
+      "password": passwordController.text.trim(),
     };
 
     setState(() {
@@ -42,25 +43,56 @@ class _LoginScreenState extends State<LoginScreen> {
         isLoading = false;
       });
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("✅ ${responseData['message']}")),
-        );
+      final responseData = jsonDecode(response.body);
+      print(responseData["token"]);
 
-        // TODO: Navigate to dashboard/home page
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        // ✅ Save token & user info for later use
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", responseData['token']);
+        await prefs.setString("role", responseData['user']['role']);
+        await prefs.setString("name", responseData['user']['name']);
+        await prefs.setString("id", responseData['user']['id']);
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("✅ ${responseData['message']}")));
+
+        // ✅ Navigate based on user role
+        final role = responseData['user']['role'];
+        if (role == "Driver") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DriverDashboard(
+                driverId: responseData['user']['id'],
+                role: role,
+                name: responseData['user']['name'],
+              ),
+            ),
+          );
+        } else {
+          // TODO: Navigate to PassengerDashboard or Admin if needed
+        }
       } else {
+        // ❌ Backend error handling
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Failed: ${response.body}")),
+          SnackBar(
+            content: Text(
+              "❌ ${responseData['message'] ?? 'Login failed, try again!'}",
+            ),
+          ),
         );
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("⚠️ Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("⚠️ Error: $e")));
     }
   }
 
@@ -91,9 +123,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 "Welcome Back",
                 style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
               ),
               const SizedBox(height: 30),
 
@@ -134,15 +167,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   child: isLoading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                        )
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "Login",
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
@@ -154,7 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const SignupScreen()),
+                      builder: (context) => const SignupScreen(),
+                    ),
                   );
                 },
                 child: const Text(

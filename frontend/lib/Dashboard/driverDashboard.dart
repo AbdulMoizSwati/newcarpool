@@ -1,5 +1,7 @@
+import 'package:carpool_frontend/logout/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// ✅ Import your existing logout function file
 
 class DriverDashboard extends StatefulWidget {
   final String driverId;
@@ -20,19 +22,28 @@ class DriverDashboard extends StatefulWidget {
 class _DriverDashboardState extends State<DriverDashboard> {
   int _selectedIndex = 0;
 
-  // Screens list for bottom navigation
-  final List<Widget> _screens = [
-    const DashboardHomeScreen(),
-    const PostRideScreen(),
-    const MyRidesScreen(),
-    const NotificationsScreen(),
-    const ProfileScreen(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      DashboardContent(
+        driverId: widget.driverId,
+        name: widget.name,
+        role: widget.role,
+      ),
+      const Center(child: Text("Post Ride Page")),
+      const Center(child: Text("My Rides Page")),
+      const Center(child: Text("Notifications Page")),
+      const Center(child: Text("Profile Page")),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           backgroundColor: Colors.white,
@@ -83,24 +94,50 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 }
 
-//
-// --------------- Dashboard Home ---------------
-class DashboardHomeScreen extends StatelessWidget {
-  const DashboardHomeScreen({super.key});
+// --- Dashboard Main Content ---
+class DashboardContent extends StatelessWidget {
+  final String driverId;
+  final String name;
+  final String role;
+
+  const DashboardContent({
+    super.key,
+    required this.driverId,
+    required this.name,
+    required this.role,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _appBar("Driver Dashboard"),
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        centerTitle: true,
+        title: Text(
+          "Driver Dashboard",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: "Logout",
+            onPressed: () {
+              logoutFunction(context); // ✅ Calls your existing logout function
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Greeting
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Welcome back 👋",
+                "Welcome back, $name 👋",
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -108,8 +145,6 @@ class DashboardHomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Stats Cards
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -128,8 +163,6 @@ class DashboardHomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 25),
-
-            // Recent Ride Placeholder
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -141,7 +174,6 @@ class DashboardHomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-
             Expanded(
               child: ListView(
                 children: [
@@ -157,19 +189,18 @@ class DashboardHomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 10),
+            Text(
+              "Driver ID: $driverId | Role: $role",
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+            ),
           ],
         ),
       ),
     );
   }
 
-  AppBar _appBar(String title) => AppBar(
-    backgroundColor: Colors.blueAccent,
-    centerTitle: true,
-    title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-  );
-
-  Widget _buildStatCard(
+  static Widget _buildStatCard(
     IconData icon,
     String title,
     String value,
@@ -202,7 +233,7 @@ class DashboardHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _rideCard(
+  static Widget _rideCard(
     String from,
     String to,
     String time,
@@ -230,191 +261,4 @@ class DashboardHomeScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-//
-// --------------- Post Ride ---------------
-class PostRideScreen extends StatelessWidget {
-  const PostRideScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final TextEditingController fromCtrl = TextEditingController();
-    final TextEditingController toCtrl = TextEditingController();
-    final TextEditingController dateCtrl = TextEditingController();
-    final TextEditingController timeCtrl = TextEditingController();
-    final TextEditingController priceCtrl = TextEditingController();
-    final TextEditingController seatsCtrl = TextEditingController();
-
-    return Scaffold(
-      appBar: _appBar("Post a Ride"),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _field(fromCtrl, "From"),
-              _field(toCtrl, "To"),
-              _field(dateCtrl, "Date (e.g., 28 Oct 2025)"),
-              _field(timeCtrl, "Time (e.g., 10:00 AM)"),
-              _field(seatsCtrl, "Seats Available", type: TextInputType.number),
-              _field(priceCtrl, "Price (Rs.)", type: TextInputType.number),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Later you will call your Node.js API here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Ride posted successfully! (API will come later)",
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.add),
-                label: const Text("Post Ride"),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  AppBar _appBar(String title) => AppBar(
-    backgroundColor: Colors.blueAccent,
-    centerTitle: true,
-    title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-  );
-
-  Widget _field(
-    TextEditingController c,
-    String label, {
-    TextInputType type = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextField(
-        controller: c,
-        keyboardType: type,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-}
-
-//
-// --------------- My Rides ---------------
-class MyRidesScreen extends StatelessWidget {
-  const MyRidesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _appBar("My Rides"),
-      body: Center(
-        child: Text(
-          "Your posted rides will appear here once connected with backend.",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 16),
-        ),
-      ),
-    );
-  }
-
-  AppBar _appBar(String title) => AppBar(
-    backgroundColor: Colors.blueAccent,
-    centerTitle: true,
-    title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-  );
-}
-
-//
-// --------------- Notifications ---------------
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _appBar("Notifications"),
-      body: Center(
-        child: Text(
-          "No notifications yet.",
-          style: GoogleFonts.poppins(fontSize: 16),
-        ),
-      ),
-    );
-  }
-
-  AppBar _appBar(String title) => AppBar(
-    backgroundColor: Colors.blueAccent,
-    centerTitle: true,
-    title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-  );
-}
-
-//
-// --------------- Profile ---------------
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _appBar("Profile"),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, color: Colors.white, size: 50),
-            ),
-            const SizedBox(height: 15),
-            Text(
-              "Driver Name",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              "driver@example.com",
-              style: GoogleFonts.poppins(color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text("Account Settings"),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text("Logout"),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  AppBar _appBar(String title) => AppBar(
-    backgroundColor: Colors.blueAccent,
-    centerTitle: true,
-    title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-  );
 }

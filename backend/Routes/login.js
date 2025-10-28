@@ -1,48 +1,61 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../Model/LoginModel.js");
 
-
 const loginRouter = express.Router();
-console.log("User Route Is Hitting");
 
-loginRouter.post("/",async (req,res)=>{
+loginRouter.post("/", async (req, res) => {
+  const { email, password } = req.body;
 
-    const{email,password} = req.body;
+  console.log(`Login attempt -> Email: ${email} | Password: ${password}`);
 
-    console.log(`Name is ${email} and Password is ${password}`);
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Empty fields!" });
+  }
 
-    if(!email || !password){
-        return res.status(400).json({error : "Empty Fields"});
+  try {
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found!" });
     }
 
-    try{
-        console.log(`Name is ${email} and Password is ${password}`);
-        const user =await User.findOne({email: email});
-        if(!user){
-            return res.status(404).json({ error: "User not found!" });
-        }
-    // compare Passwords
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "Invalid password!" });
+      return res.status(401).json({ success: false, message: "Invalid password!" });
     }
-     return res.status(200).json({
+
+    // ✅ Generate JWT token (valid for 7 days)
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+      },
+      "1234", // hardcoded secret key
+      { expiresIn: "7d" }
+    );
+
+    console.log("✅ User logged in successfully");
+
+    // ✅ Send response to Flutter
+    return res.status(200).json({
+      success: true,
       message: "Login successful!",
-      userId: user._id,
-      role: user.role,
-      name: user.name,
+      token: token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
-    }catch(err){
-         console.error("Login error:", err);
-    return res.status(500).json({ error: "Server error" });
-  
-    }
-    
-
-
-
-
-})
+  } catch (err) {
+    console.error("❌ Login error:", err);
+    return res.status(500).json({ success: false, message: "Server error!" });
+  }
+});
 
 module.exports = loginRouter;
