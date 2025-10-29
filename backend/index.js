@@ -4,6 +4,7 @@ const signup = require("./Routes/SignUpRoute.js");
 const bcrypt = require("bcrypt");
 const User = require("./Model/LoginModel.js");
 const loginRouter = require("./Routes/login.js");
+const postRide = require("./Routes/postRide.js");
 
 
 
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 // -----------------------------
 app.use("/api/users/signup",signup);
 app.use("/api/users/login",loginRouter);
+app.use("/api/users/postRide",postRide);
 
 
   

@@ -8,20 +8,20 @@ const loginRouter = express.Router();
 loginRouter.post("/", async (req, res) => {
   const { email, password } = req.body;
 
-  console.log(`Login attempt -> Email: ${email} | Password: ${password}`);
+  console.log(`🔐 Login attempt -> Email: ${email}`);
 
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: "Empty fields!" });
+    return res.status(400).json({ success: false, message: "Email and password required!" });
   }
 
   try {
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found!" });
     }
 
-    // Compare password
+    // Compare password using bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid password!" });
@@ -34,27 +34,48 @@ loginRouter.post("/", async (req, res) => {
         role: user.role,
         email: user.email,
       },
-      "1234", // hardcoded secret key
+      "1234", // 🔒 Ideally move this secret to .env
       { expiresIn: "7d" }
     );
 
     console.log("✅ User logged in successfully");
 
-    // ✅ Send response to Flutter
+    // ✅ Prepare user details to send back
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      gender: user.gender,
+      contact: user.contact,
+      idCard: user.idCard,
+      profileImagePath: user.profileImagePath || "",
+      role: user.role,
+      carDetails: user.carDetails
+        ? {
+            carType: user.carDetails.carType,
+            carNumber: user.carDetails.carNumber,
+            licenseNumber: user.carDetails.licenseNumber,
+          }
+        : null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    // ✅ Send response
     return res.status(200).json({
       success: true,
       message: "Login successful!",
-      token: token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      token,
+      user: userData,
     });
   } catch (err) {
     console.error("❌ Login error:", err);
-    return res.status(500).json({ success: false, message: "Server error!" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message,
+    });
   }
 });
 

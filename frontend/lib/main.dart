@@ -1,7 +1,11 @@
-import 'package:carpool_frontend/LandingPage/LandingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Your imports
+import 'package:carpool_frontend/LandingPage/LandingPage.dart';
 import 'package:carpool_frontend/Dashboard/driverDashboard.dart';
+// 🚀 Add your future PassengerDashboard when created
+// import 'package:carpool_frontend/Dashboard/passengerDashboard.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CheckSharedPreferences(), // 👈 start from here
+      home: CheckSharedPreferences(),
     );
   }
 }
@@ -28,11 +32,12 @@ class CheckSharedPreferences extends StatefulWidget {
 
 class _CheckSharedPreferencesState extends State<CheckSharedPreferences> {
   bool isLoading = true;
-  bool isValid = false;
-
-  String? driverId;
   String? role;
+  String? userId;
   String? name;
+  String? vehicleType;
+  String? vehiclePlate;
+  String? licenseNumber;
 
   @override
   void initState() {
@@ -40,7 +45,6 @@ class _CheckSharedPreferencesState extends State<CheckSharedPreferences> {
     checkSharedPrefs();
   }
 
-  // ✅ Function to check shared preferences
   Future<void> checkSharedPrefs() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -48,27 +52,24 @@ class _CheckSharedPreferencesState extends State<CheckSharedPreferences> {
     final savedRole = prefs.getString("role");
     final savedId = prefs.getString("id");
     final savedName = prefs.getString("name");
+    final savedVehicleType = prefs.getString("vehicleType");
+    final savedVehiclePlate = prefs.getString("vehiclePlate");
+    final savedLicenseNumber = prefs.getString("licenseNumber");
 
-    // Debug prints (optional)
     print("🧩 Checking SharedPreferences...");
     print("Token: $token");
     print("Role: $savedRole");
     print("ID: $savedId");
     print("Name: $savedName");
 
-    if (token != null &&
-        token.isNotEmpty &&
-        savedRole != null &&
-        savedRole.isNotEmpty &&
-        savedId != null &&
-        savedId.isNotEmpty &&
-        savedName != null &&
-        savedName.isNotEmpty) {
+    if (token != null && token.isNotEmpty && savedRole != null) {
       setState(() {
-        isValid = true;
-        driverId = savedId;
         role = savedRole;
+        userId = savedId;
         name = savedName;
+        vehicleType = savedVehicleType;
+        vehiclePlate = savedVehiclePlate;
+        licenseNumber = savedLicenseNumber;
       });
     }
 
@@ -83,16 +84,27 @@ class _CheckSharedPreferencesState extends State<CheckSharedPreferences> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // ✅ If SharedPreferences data is valid
-    if (isValid) {
+    // ✅ Navigate by role
+    if (role == "Driver") {
       return DriverDashboard(
-        driverId: driverId ?? "",
-        role: role ?? "",
+        driverId: userId ?? "",
+        role: role ?? "Driver",
         name: name ?? "",
+        vehicleType: vehicleType ?? "",
+        vehiclePlate: vehiclePlate ?? "",
+        licenseNumber: licenseNumber ?? "",
       );
+    } else if (role == "Passenger") {
+      // 🚀 Add when PassengerDashboard exists
+      // return PassengerDashboard(
+      //   passengerId: userId ?? "",
+      //   role: role ?? "Passenger",
+      //   name: name ?? "",
+      // );
+      return const Landingpage(); // temporary placeholder
     }
 
-    // ❌ If SharedPreferences is not valid
+    // ❌ If not logged in
     return const Landingpage();
   }
 }

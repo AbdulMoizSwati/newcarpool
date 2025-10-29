@@ -20,81 +20,89 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   Future<void> sendLoginData() async {
-    const String apiUrl =
-        "http://10.0.2.2:8001/api/users/login"; // ✅ Your backend endpoint
+  const String apiUrl = "http://10.0.2.2:8001/api/users/login";
 
-    final Map<String, dynamic> loginData = {
-      "email": emailController.text.trim(),
-      "password": passwordController.text.trim(),
-    };
+  final Map<String, dynamic> loginData = {
+    "email": emailController.text.trim(),
+    "password": passwordController.text.trim(),
+  };
+
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(loginData),
+    );
 
     setState(() {
-      isLoading = true;
+      isLoading = false;
     });
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(loginData),
+    final responseData = jsonDecode(response.body);
+    print("🟢 Response: $responseData");
+
+    if (response.statusCode == 200 && responseData['success'] == true) {
+      final user = responseData['user'];
+
+      // ✅ Save token & user info
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", responseData['token']);
+      await prefs.setString("role", user['role']);
+      await prefs.setString("name", user['name']);
+      await prefs.setString("id", user['id']);
+
+      // Save car details if exists
+      if (user['carDetails'] != null) {
+        await prefs.setString("carType", user['carDetails']['carType'] ?? '');
+        await prefs.setString("carNumber", user['carDetails']['carNumber'] ?? '');
+        await prefs.setString("licenseNumber", user['carDetails']['licenseNumber'] ?? '');
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("✅ ${responseData['message']}")),
       );
 
-      setState(() {
-        isLoading = false;
-      });
+      final role = user['role'];
 
-      final responseData = jsonDecode(response.body);
-      print(responseData["token"]);
-
-      if (response.statusCode == 200 && responseData['success'] == true) {
-        // ✅ Save token & user info for later use
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", responseData['token']);
-        await prefs.setString("role", responseData['user']['role']);
-        await prefs.setString("name", responseData['user']['name']);
-        await prefs.setString("id", responseData['user']['id']);
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(
+      // ✅ Navigate to Driver Dashboard
+      if (role == "Driver") {
+        Navigator.pushReplacement(
           context,
-        ).showSnackBar(SnackBar(content: Text("✅ ${responseData['message']}")));
-
-        // ✅ Navigate based on user role
-        final role = responseData['user']['role'];
-        if (role == "Driver") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DriverDashboard(
-                driverId: responseData['user']['id'],
-                role: role,
-                name: responseData['user']['name'],
-              ),
-            ),
-          );
-        } else {
-          // TODO: Navigate to PassengerDashboard or Admin if needed
-        }
-      } else {
-        // ❌ Backend error handling
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "❌ ${responseData['message'] ?? 'Login failed, try again!'}",
+          MaterialPageRoute(
+            builder: (context) => DriverDashboard(
+              driverId: user['id'],
+              role: role,
+              name: user['name'],
+              vehicleType: user['carDetails']?['carType'] ?? "Unknown Vehicle",
+              vehiclePlate: user['carDetails']?['carNumber'] ?? "N/A",
+              licenseNumber: user['carDetails']?['licenseNumber'] ?? "N/A",
             ),
           ),
         );
+      } else {
+        // TODO: PassengerDashboard
       }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("⚠️ Error: $e")));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("❌ ${responseData['message'] ?? 'Login failed!'}")),
+      );
     }
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("⚠️ Error: $e")),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

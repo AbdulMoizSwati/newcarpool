@@ -2,18 +2,23 @@ import 'package:carpool_frontend/Dashboard/dashboard.dart';
 import 'package:carpool_frontend/Dashboard/postride.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// ✅ Import your existing logout function file
 
 class DriverDashboard extends StatefulWidget {
   final String driverId;
   final String role;
   final String name;
+  final String vehicleType;
+  final String vehiclePlate;
+  final String licenseNumber;
 
   const DriverDashboard({
     super.key,
     required this.driverId,
     required this.role,
     required this.name,
+    required this.vehicleType,
+    required this.vehiclePlate,
+    required this.licenseNumber,
   });
 
   @override
@@ -22,19 +27,26 @@ class DriverDashboard extends StatefulWidget {
 
 class _DriverDashboardState extends State<DriverDashboard> {
   int _selectedIndex = 0;
-
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+
+    // ✅ Initialize dashboard tabs with driver info
     _pages = [
       DashboardContent(
         driverId: widget.driverId,
         name: widget.name,
         role: widget.role,
       ),
-      BookRidePage(),
+      PostRidePage(
+        driverId: widget.driverId,
+        driverName: widget.name,
+        vehicleType: widget.vehicleType,
+        vehiclePlate: widget.vehiclePlate,
+        licenseNumber: widget.licenseNumber, // ✅ fixed & valid
+      ),
       const Center(child: Text("My Rides Page")),
       const Center(child: Text("Notifications Page")),
       const Center(child: Text("Profile Page")),
@@ -72,10 +84,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
             ),
             NavigationDestination(
               icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(
-                Icons.directions_car,
-                color: Colors.blueAccent,
-              ),
+              selectedIcon: Icon(Icons.directions_car, color: Colors.blueAccent),
               label: "My Rides",
             ),
             NavigationDestination(
@@ -94,5 +103,3 @@ class _DriverDashboardState extends State<DriverDashboard> {
     );
   }
 }
-
-// --- Dashboard Main Content ---
