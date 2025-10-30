@@ -1,3 +1,4 @@
+import 'package:carpool_frontend/Dashboard/MyRides.dart';
 import 'package:carpool_frontend/Dashboard/dashboard.dart';
 import 'package:carpool_frontend/Dashboard/postride.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
         vehiclePlate: widget.vehiclePlate,
         licenseNumber: widget.licenseNumber, // ✅ fixed & valid
       ),
-      const Center(child: Text("My Rides Page")),
+      MyRidesPage(driverId: widget.driverId),
+
       const Center(child: Text("Notifications Page")),
       const Center(child: Text("Profile Page")),
     ];
@@ -84,7 +86,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
             ),
             NavigationDestination(
               icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(Icons.directions_car, color: Colors.blueAccent),
+              selectedIcon: Icon(
+                Icons.directions_car,
+                color: Colors.blueAccent,
+              ),
               label: "My Rides",
             ),
             NavigationDestination(

@@ -97,8 +97,10 @@ class _PostRidePageState extends State<PostRidePage> {
       "totalSeats": availableSeats,
       "departureDate": departureDate!.toIso8601String(),
       "pricePerSeat": pricePerSeat,
-      "vehicleType": widget.vehicleType,
-      "vehiclePlate": widget.vehiclePlate,
+      "vehicleType": widget.vehicleType.isNotEmpty ? widget.vehicleType : "Car",
+      "vehiclePlate": widget.vehiclePlate.isEmpty
+          ? "1234"
+          : widget.vehiclePlate,
       "licenseNumber": widget.licenseNumber,
     };
 
@@ -106,7 +108,7 @@ class _PostRidePageState extends State<PostRidePage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:8001/api/users/login/postRide"),
+        Uri.parse("http://10.0.2.2:8001/api/users/postRide"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(rideData),
       );
@@ -127,13 +129,17 @@ class _PostRidePageState extends State<PostRidePage> {
       } else {
         final resBody = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed: ${resBody['error'] ?? response.reasonPhrase}")),
+          SnackBar(
+            content: Text(
+              "Failed: ${resBody['error'] ?? response.reasonPhrase}",
+            ),
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error posting ride: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error posting ride: $e")));
     } finally {
       setState(() => isLoading = false); // stop loading
     }
@@ -173,7 +179,8 @@ class _PostRidePageState extends State<PostRidePage> {
                   prefixIcon: Icon(Icons.my_location),
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? "Enter pickup location" : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? "Enter pickup location" : null,
               ),
               const SizedBox(height: 12),
 
@@ -185,13 +192,16 @@ class _PostRidePageState extends State<PostRidePage> {
                   prefixIcon: Icon(Icons.location_on),
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? "Enter dropoff location" : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? "Enter dropoff location" : null,
               ),
               const SizedBox(height: 16),
 
               // License number display
-              Text("📝 License Number: ${widget.licenseNumber}",
-                  style: GoogleFonts.poppins(fontSize: 14)),
+              Text(
+                "📝 License Number: ${widget.licenseNumber}",
+                style: GoogleFonts.poppins(fontSize: 14),
+              ),
               const SizedBox(height: 20),
 
               // Seats
@@ -200,17 +210,19 @@ class _PostRidePageState extends State<PostRidePage> {
                 value: availableSeats,
                 onChanged: (val) => setState(() => availableSeats = val!),
                 items: List.generate(6, (i) => i + 1)
-                    .map((n) => DropdownMenuItem(
-                          value: n,
-                          child: Text(n.toString()),
-                        ))
+                    .map(
+                      (n) =>
+                          DropdownMenuItem(value: n, child: Text(n.toString())),
+                    )
                     .toList(),
               ),
               const SizedBox(height: 10),
 
               // Price
               TextFormField(
-                decoration: const InputDecoration(labelText: "Price Per Seat (PKR)"),
+                decoration: const InputDecoration(
+                  labelText: "Price Per Seat (PKR)",
+                ),
                 keyboardType: TextInputType.number,
                 onChanged: (v) => pricePerSeat = int.tryParse(v) ?? 100,
               ),
@@ -236,7 +248,10 @@ class _PostRidePageState extends State<PostRidePage> {
                         onPressed: _submitRide,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 12,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

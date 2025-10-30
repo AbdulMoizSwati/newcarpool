@@ -38,7 +38,7 @@ class _RideLocationPickerState extends State<RideLocationPicker> {
       appBar: AppBar(title: const Text("Select Pickup & Drop-off")),
       body: FlutterMap(
         options: MapOptions(
-          initialCenter: LatLng(31.582045, 74.329376), // Lahore
+          initialCenter: LatLng(34.3313, 73.1980), // Mansehra
           initialZoom: 13.0,
           onTap: (tapPos, point) async {
             if (pickupLocation == null) {
