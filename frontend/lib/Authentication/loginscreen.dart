@@ -3,7 +3,7 @@ import 'package:carpool_frontend/Dashboard/driverDashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ Added to store token/user info
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ For storing token/user info
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,89 +20,89 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   Future<void> sendLoginData() async {
-  const String apiUrl = "http://10.0.2.2:8001/api/users/login";
+    const String apiUrl = "http://10.0.2.2:8001/api/users/login";
 
-  final Map<String, dynamic> loginData = {
-    "email": emailController.text.trim(),
-    "password": passwordController.text.trim(),
-  };
-
-  setState(() {
-    isLoading = true;
-  });
-
-  try {
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(loginData),
-    );
+    final Map<String, dynamic> loginData = {
+      "email": emailController.text.trim(),
+      "password": passwordController.text.trim(),
+    };
 
     setState(() {
-      isLoading = false;
+      isLoading = true;
     });
 
-    final responseData = jsonDecode(response.body);
-    print("🟢 Response: $responseData");
-
-    if (response.statusCode == 200 && responseData['success'] == true) {
-      final user = responseData['user'];
-
-      // ✅ Save token & user info
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", responseData['token']);
-      await prefs.setString("role", user['role']);
-      await prefs.setString("name", user['name']);
-      await prefs.setString("id", user['id']);
-
-      // Save car details if exists
-      if (user['carDetails'] != null) {
-        await prefs.setString("carType", user['carDetails']['carType'] ?? '');
-        await prefs.setString("carNumber", user['carDetails']['carNumber'] ?? '');
-        await prefs.setString("licenseNumber", user['carDetails']['licenseNumber'] ?? '');
-      }
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("✅ ${responseData['message']}")),
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(loginData),
       );
 
-      final role = user['role'];
+      setState(() {
+        isLoading = false;
+      });
 
-      // ✅ Navigate to Driver Dashboard
-      if (role == "Driver") {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DriverDashboard(
-              driverId: user['id'],
-              role: role,
-              name: user['name'],
-              vehicleType: user['carDetails']?['carType'] ?? "Unknown Vehicle",
-              vehiclePlate: user['carDetails']?['carNumber'] ?? "N/A",
-              licenseNumber: user['carDetails']?['licenseNumber'] ?? "N/A",
-            ),
-          ),
+      final responseData = jsonDecode(response.body);
+      print("🟢 Response: $responseData");
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        final user = responseData['user'];
+
+        // ✅ Save token & user info
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", responseData['token']);
+        await prefs.setString("role", user['role']);
+        await prefs.setString("name", user['name']);
+        await prefs.setString("id", user['id']);
+
+        // Save car details if exists
+        if (user['carDetails'] != null) {
+          await prefs.setString("carType", user['carDetails']['carType'] ?? '');
+          await prefs.setString("carNumber", user['carDetails']['carNumber'] ?? '');
+          await prefs.setString("licenseNumber", user['carDetails']['licenseNumber'] ?? '');
+        }
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("✅ ${responseData['message']}")),
         );
+
+        final role = user['role'];
+
+        // ✅ Navigate to Driver Dashboard (no back button)
+        if (role == "Driver") {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DriverDashboard(
+                driverId: user['id'],
+                role: role,
+                name: user['name'],
+                vehicleType: user['carDetails']?['carType'] ?? "Unknown Vehicle",
+                vehiclePlate: user['carDetails']?['carNumber'] ?? "N/A",
+                licenseNumber: user['carDetails']?['licenseNumber'] ?? "N/A",
+              ),
+            ),
+            (route) => false, // 🚫 Removes all previous routes
+          );
+        } else {
+          // TODO: Add Passenger Dashboard navigation
+        }
       } else {
-        // TODO: PassengerDashboard
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ ${responseData['message'] ?? 'Login failed!'}")),
+        );
       }
-    } else {
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ ${responseData['message'] ?? 'Login failed!'}")),
+        SnackBar(content: Text("⚠️ Error: $e")),
       );
     }
-  } catch (e) {
-    setState(() {
-      isLoading = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("⚠️ Error: $e")),
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
