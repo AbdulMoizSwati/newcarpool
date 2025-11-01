@@ -50,22 +50,18 @@ const rideSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // Ride lifecycle
     rideStatus: {
       type: String,
       enum: ['active', 'completed', 'cancelled'],
       default: 'active',
     },
-    passengers: [
-      {
-        passengerId: String,
-        passengerName: String,
-        seatsBooked: Number,
-      },
-    ],
+   
   },
-  { timestamps: true } // automatically adds createdAt and updatedAt
+  { timestamps: true }
 );
 
-postRide = mongoose.model('Ride', rideSchema);
+const Ride = mongoose.model('Ride', rideSchema);
 
-module.exports = postRide;
+module.exports = Ride;

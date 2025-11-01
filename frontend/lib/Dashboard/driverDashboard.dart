@@ -1,6 +1,8 @@
+import 'package:carpool_frontend/Dashboard/Alert.dart';
 import 'package:carpool_frontend/Dashboard/MyRides.dart';
 import 'package:carpool_frontend/Dashboard/dashboard.dart';
 import 'package:carpool_frontend/Dashboard/postride.dart';
+import 'package:carpool_frontend/Dashboard/updateProfile.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -50,8 +52,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
       ),
       MyRidesPage(driverId: widget.driverId),
 
-      const Center(child: Text("Notifications Page")),
-      const Center(child: Text("Profile Page")),
+      AlertPage(driverId: widget.driverId),
+      ProfileUpdatePage(userId: widget.driverId, role: widget.role),
     ];
   }
 
@@ -63,7 +65,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
         data: NavigationBarThemeData(
           backgroundColor: Colors.white,
           indicatorColor: Colors.blue.shade50,
-          labelTextStyle: MaterialStateProperty.all(
+          labelTextStyle: WidgetStateProperty.all(
             GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ),

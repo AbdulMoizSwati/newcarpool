@@ -245,7 +245,7 @@ class _PostRidePageState extends State<PostRidePage> {
                       style: GoogleFonts.poppins(fontSize: 15)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<int>(
-                    value: availableSeats,
+                    initialValue: availableSeats,
                     onChanged: (val) => setState(() => availableSeats = val!),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(

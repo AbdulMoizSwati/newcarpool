@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const User = require("./Model/LoginModel.js");
 const loginRouter = require("./Routes/login.js");
 const RidePoster = require("./Routes/PostRide.js");
+const FetchPendingRideRouter = require("./Routes/GetPendngRides.js");
+const updateProfile  = require("./Routes/UpdateRoute.js");
 
 
 
@@ -29,6 +31,8 @@ app.use((req, res, next) => {
 app.use("/api/users/signup",signup);
 app.use("/api/users/login",loginRouter);
 app.use("/api/users/postRide",RidePoster);
+app.use("/api/users/pendingrides",FetchPendingRideRouter);
+app.use("/api/users", updateProfile);
 
 
   
