@@ -91,7 +91,7 @@ class _ProfileUpdatePageState extends State<ProfileUpdatePage> {
   // Update profile API call
   // =======================
   Future<void> _updateProfile() async {
-    final url = Uri.parse("$baseUrl/update/${widget.userId}");
+    final url = Uri.parse("$baseUrl/${widget.userId}");
 
     Map<String, dynamic> body = {
       "name": nameController.text,

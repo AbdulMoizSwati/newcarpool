@@ -1,5 +1,6 @@
 import 'package:carpool_frontend/Authentication/Signupage.dart';
 import 'package:carpool_frontend/Dashboard/driverDashboard.dart';
+import 'package:carpool_frontend/passengerDashboard/MainPassenger.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -87,7 +88,9 @@ class _LoginScreenState extends State<LoginScreen> {
             (route) => false, // 🚫 Removes all previous routes
           );
         } else {
-          // TODO: Add Passenger Dashboard navigation
+          Navigator.pushAndRemoveUntil(context, 
+          MaterialPageRoute(builder: (context)=> PassengerDashboard(passengerId: user['id'], name: user['name'])),
+           (route)=> false);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
