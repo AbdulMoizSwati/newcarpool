@@ -4,10 +4,11 @@ const signup = require("./Routes/SignUpRoute.js");
 const bcrypt = require("bcrypt");
 const User = require("./Model/LoginModel.js");
 const loginRouter = require("./Routes/login.js");
-const RidePoster = require("./Routes/PostRide.js");
+const RidePoster = require("./Routes/postRide.js");
 const FetchPendingRideRouter = require("./Routes/GetPendngRides.js");
 const updateProfile  = require("./Routes/UpdateRoute.js");
-
+const availableRides = require("./Routes/fetchAllRides.js");
+const BookRideByPassenger = require("./Routes/BookingRideByPassenger.js");
 
 
 
@@ -33,6 +34,9 @@ app.use("/api/users/login",loginRouter);
 app.use("/api/users/postRide",RidePoster);
 app.use("/api/users/pendingrides",FetchPendingRideRouter);
 app.use("/api/users", updateProfile);
+app.use("/api/availabeRides",availableRides);
+app.use("/api/BookRide",BookRideByPassenger);
+
 
 
   
